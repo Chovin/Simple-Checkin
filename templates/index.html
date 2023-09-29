@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Hilton Gym Check-in</title>
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <script src="https://unpkg.com/petite-vue@0.2.2/dist/petite-vue.iife.js" defer init></script>
+
+    <style>
+      body, html {
+        padding: 0;
+        margin: 0;
+        height: 100vh;
+        width: 100vw;
+      }
+      body {
+        background: rgb(0,129,125);
+        background: linear-gradient(117deg, rgba(0,129,125,1) 0%, rgba(52,198,194,1) 32%, rgba(30,218,218,1) 48%, rgba(0,212,255,1) 100%);
+        background-size: cover;
+        background-attachment: fixed;
+      }
+      .h-full {
+        height: 100%;
+      }
+      .center-items {
+        display: grid;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container h-full center-items">
+      <div class="card m-6">
+        <div class="card-content">
+          <div v-scope="{
+            name: '', 
+            membership: '',
+            submitting: false,
+            thanking: false,
+            async submit() {
+              if (this.thanking || this.submitting) {return}
+              if (!this.name.trim() ||!this.membership.trim()) {
+                alert('Please enter your full name and membership number')
+                return
+              }
+              this.submitting = true
+              try {
+                await fetch('/', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    name: this.name,
+                    membership: this.membership
+                  })
+                })
+              } catch (err) {
+                alert('An error has occurred, please try again.')
+                return
+              }
+              this.submitting = false
+              this.name = ''
+              this.membership = ''
+              this.thanking = true
+              setTimeout(() => {
+                this.thanking = false
+              }, 3000)
+            }
+          }" class="container white ma-6">
+            <div class="row">
+              <h1 v-if="thanking">Thank You</h1>
+              <h1 v-else>Please Check-in</h1>
+            </div>
+            <div class="row">
+              <div class="col s8">
+                <div class="input-field">
+                  <input v-model="membership" type="text" id="Membership Number" autocomplete="off" :disabled="thanking" required/>
+                  <label for="Membership Number">Membership Number</label>
+                </div>
+                <div class="input-field">
+                  <input v-model="name" type="text" id="name" autocomplete="off" :disabled="thanking" required/>
+                  <label for="name">Full Name</label>
+                </div>
+              </div>
+            </div>
+            <div class="row text-right">
+              <div class="col s11"></div>
+              <div class="col s1">
+                <a @click="submit" class="waves-effect waves-light btn">Submit</a>
+              </div>
+            </div>
+            <div class="row">
+              <div v-if="submitting" class="col s12 progress">
+                  <div class="indeterminate"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    </div>
+    </div>
+  </body>
+</html>

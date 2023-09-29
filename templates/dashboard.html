@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title>Hilton Gym Check-in</title>
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <script src="https://unpkg.com/petite-vue@0.4.1/dist/petite-vue.iife.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/text-encoding@0.7.0/lib/encoding-indexes.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+      body, html {
+        padding: 0;
+        margin: 0;
+        height: 100vh;
+        width: 100vw;
+      }
+      body {
+        background: rgb(0,129,125);
+        background: linear-gradient(117deg, rgba(0,129,125,1) 0%, rgba(52,198,194,1) 32%, rgba(30,218,218,1) 48%, rgba(0,212,255,1) 100%);
+        background-size: cover;
+        background-attachment: fixed;
+      }
+      .h-full {
+        height: 100%;
+      }
+      .center-items {
+        display: grid;
+        align-items: center;
+      }
+      .card {
+        height: 95%;
+        overflow: scroll;
+      }
+      thead tr {
+        position: sticky;
+        top: 0;
+        background: white;
+      }
+      tr {
+        transition: all 0.25s ease-in-out
+      }
+      .new {
+        background: red;
+        border-radius: 2px;
+      }
+      .menu {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        background: rgba(0,212,255,1);
+      }
+      .dropdown-content li.loading-item {
+        text-align: center;
+      }
+      .dropdown-container {
+        position: absolute;
+        top: 1rem;
+      }
+      #download_dropdown {
+        width: 18rem;
+        height: fit-content !important;
+        max-height: 225px;
+        overflow: scroll;
+      }
+      #download_dropdown li {
+        color: inherit;
+        text-align: center;
+        display: grid;
+        align-content: center;
+      }
+      .popover {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        width: fit-content;
+        height: fit-content;
+        z-index: 1;
+        margin: 0;
+      }
+      .popover .card-action {
+        display: flex;
+        justify-content: flex-end;
+      }
+      .popover .card-action a {
+        color: rgba(0,129,125,1) !important;
+      }
+      .popover .card-action a.text-grey {
+        color: rgba(150,150,150,1) !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container h-full center-items">
+      <div class="card m-6">
+        <div v-scope class="card-content">
+          <table @vue:mounted="mounted">
+            <thead>
+              <tr>
+                <th>Membership Number</th>
+                <th>Name</th>
+                <th>Check-in Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr 
+                v-for="(item, i) in descCheckins"
+                :class="[descNews[i]? 'new':'']"
+              >
+                <td>{{item.membership}}</td>
+                <td>{{item.name}}</td>
+                <td>{{item.datetime}}</td>
+              </tr>
+            </tbody>
+          </table>
+          <a class="menu btn-floating btn-large waves-effect waves-light" @click="openDownloadMenu"><i class="material-icons">file_download</i></a>
+          <div class="card popover" v-show="menuOpen">
+            <div class="card-content">
+              <div class="card-title">Choose date range</div>
+              <input 
+                type="text" class="datepicker" id="date-from"
+                v-model="dateFrom"
+                @change="validateDateFrom($el)"
+              >
+              <label for="date-from">From</label>
+              <input 
+                type="text" class="datepicker" id="date-to"
+                v-model="dateTo"
+                @change="validateDateTo($el)"
+              >
+              <label for="date-from">to</label>
+            </div>
+            <div class="card-action">
+              <a href="#" @click="menuOpen=false">Cancel</a>
+              <a v-if="!dateTo || !dateFrom" class="text-grey" href="#">Download</a>
+              <a v-else :href="downloadLink">Download</a>
+            </div>
+          </div>
+          <!-- <ul id='download_dropdown' class='dropdown-content'>
+            <li v-if="loading" class="loading-item">
+              <div class="progress">
+                  <div class="indeterminate"></div>
+              </div>
+            </li>
+            <li>
+              <input type="text" class="datepicker">
+            </li>
+            <li v-for="file in descFiles">
+              <a :href="'/files/' + file" >
+                  <div>{{file}}</div>
+              </a>
+            </li>
+          </ul> -->
+        </div>
+      </div>
+    </div>
+  <script>
+    PetiteVue.createApp({
+      news: [],
+      checkins: [],
+      mount: false,
+      loading: false,
+      files: [],
+      menuOpen: false,
+      dateFrom: null,
+      dateTo: null,
+      get descFiles() {
+        return this.files.toReversed()
+      },
+      get descCheckins () {
+        return this.checkins.toReversed()
+      },
+      get descNews() {
+        return this.news.toReversed()
+      },
+      get downloadLink() {
+        let from = this.getDateStr(new Date(this.dateFrom))
+        let to = this.getDateStr(new Date(this.dateTo))
+        let d = {from, to}
+        console.log(from, to)
+        
+        return `/export?${new URLSearchParams(d)}`
+      },
+      getDateStr(date = null) {
+        let today = date || new Date()
+        let today_str = today.toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' , timeZone: 'Pacific/Guam' })
+        today = new Date(today_str)
+        const year = today.getFullYear()
+        const month = String(today.getMonth()+1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        today_str = `${year}-${month}-${day}`
+        // today_str = `${year}-${month}`
+        return today_str
+      },
+      validateDateFrom(el) {
+        let value = el.value
+        // this.dateFrom = value
+        if (this.dateTo) {
+          if (new Date(this.dateTo) < new Date(value)) {
+            alert('Date From should be before Date To')
+            this.dateFrom = null
+            return
+          }
+        }
+        this.dateFrom = value
+      },
+      validateDateTo(el) {
+        let value = el.value
+        // this.dateTo = value
+        if (this.dateFrom) {
+          if (new Date(value) < new Date(this.dateFrom)) {
+            alert('Date From should be before Date To')
+            this.dateTo = null
+            return
+          }
+        }
+        this.dateTo = value
+      },
+      cleanItem(item) {
+        item.name = decodeURIComponent(item.name.replaceAll('"', ''))
+        item.membership = decodeURIComponent(item.membership.replaceAll('"', ''))
+      },
+      async openDownloadMenu() {
+        this.menuOpen = true
+        this.dateTo = null
+        this.dateFrom = null
+        // this.loading = true
+        // this.files = []
+        // let resp = await fetch('/files')
+        // this.files = await resp.json()
+        // this.files.sort()
+        // this.loading = false
+      },
+      async watchCheckins() {
+        resp = await fetch('/checkins/stream')
+        const reader = await resp.body.getReader()
+        let done, value;
+        while (!done) {
+          ({value, done} = await reader.read())
+          if (value) {
+            let items = (new TextDecoder()).decode(value).trim().split('\n')
+            for (let item of items) {
+              let parts = item.split(',')
+              let io = {
+                name: parts[0],
+                membership: parts[1],
+                datetime: parts[2],
+                new: true
+              }
+              this.cleanItem(io)
+              
+              this.checkins.push(io)
+              this.news.push(true)
+              let i = this.news.length-1
+              let self = this
+              setTimeout(function() {
+                console.log('here', io)
+                io.new = false
+                self.news[i] = false
+              }, 10*1000)
+            }
+          }
+          if (done) {
+            
+          }
+        }
+      },
+      async mounted() {
+        let resp = await fetch('/checkins')
+        resp = await resp.json()
+        this.checkins = resp.map(i => {
+          i.new = false
+          this.news.push(false)
+          this.cleanItem(i)
+          return i
+        })
+        while (true) {
+          await this.watchCheckins()
+        }
+      }
+    }).mount()
+    document.addEventListener('DOMContentLoaded', function() {
+      var elems = document.querySelectorAll('.datepicker');
+      var instances = M.Datepicker.init(elems, {});
+    });
+    document.addEventListener('DOMContentLoaded', function() {
+      var elems = document.querySelectorAll('.dropdown-trigger');
+      var instances = M.Dropdown.init(elems, {constrainWidth: false});
+    });
+  </script>
+  </body>
+</html>

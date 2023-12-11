@@ -9,6 +9,7 @@ simple gym checkin form and dashboard
 ## Usage
 
 * `npm run start`
+* to run on a separate port (3000 for instance): `npm run start -- 3000`
 
 ## Considerations
 

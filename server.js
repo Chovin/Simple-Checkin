@@ -1,12 +1,15 @@
 const express = require('express')
 const app = express()
-const port = 80
+let port = 80
 const path = require('path');
 const fs = require('fs')
 const fsa = require('fs').promises
 const { v4: uuidv4 } = require('uuid');
 const asyncHandler = require('express-async-handler')
 
+if (process.argv.length >= 3) {
+  port = parseInt(process.argv[2])
+}
 
 const output_folder = 'checkins'
 const checkins = {}

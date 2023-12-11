@@ -47,10 +47,30 @@
             membership: '',
             submitting: false,
             thanking: false,
+            isValidMembership(membership) {
+              const regex = /^\d{5}-\d{5}-\d{2}$/g
+              return regex.test(membership)
+            },
+            scrubMembership() {
+              let number = this.membership.replace(/[^0-9]/gi, '')
+              number = number.substring(0,12)
+              let chunked = number.match(/\d{1,5}/g) || ['']
+              membership = chunked.join('-')
+              // needs to execute on next poll since this happens 
+              // before this.membership is changed by the v-model
+              setTimeout(() => {
+                this.membership = membership
+              }, 0)
+            },
             async submit() {
               if (this.thanking || this.submitting) {return}
-              if (!this.firstname.trim() || !this.lastname.trim() || !this.membership.trim()) {
-                alert('Please enter your full name and membership number')
+              if (
+                !this.firstname.trim() || 
+                !this.lastname.trim() || 
+                !this.membership.trim() ||
+                !this.isValidMembership(this.membership.trim())
+              ) {
+                alert('Please enter your full name and membership number.\nMembership number must be a 12 digit number')
                 return
               }
               this.submitting = true
@@ -87,7 +107,13 @@
             <div class="row">
               <div class="col s8">
                 <div class="input-field">
-                  <input v-model="membership" type="text" id="Membership Number" autocomplete="off" :disabled="thanking" required/>
+                  <input 
+                    v-model="membership" 
+                    type="text" id="Membership Number" 
+                    autocomplete="off" :disabled="thanking" 
+                    placeholder="12345-12345-12" v-effect="scrubMembership()" 
+                    pattern="[0-9]*" inputmode="numeric"
+                    required/>
                   <label for="Membership Number">Membership Number</label>
                 </div>
                 <div class="input-field">

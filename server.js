@@ -13,6 +13,10 @@ const checkins = {}
 const queues = {}
 let files = []
 
+if (!fs.existsSync(output_folder)) {
+  fs.mkdirSync(output_folder)
+}
+
 function outputFile() {
   return `${getToday()}-checkins.csv`
 }

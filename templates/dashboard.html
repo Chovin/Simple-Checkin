@@ -108,7 +108,8 @@
             <thead>
               <tr>
                 <th>Membership Number</th>
-                <th>Name</th>
+                <th>First Name</th>
+                <th>Last Name</th>
                 <th>Check-in Time</th>
               </tr>
             </thead>
@@ -118,7 +119,8 @@
                 :class="[descNews[i]? 'new':'']"
               >
                 <td>{{item.membership}}</td>
-                <td>{{item.name}}</td>
+                <td>{{item.firstname}}</td>
+                <td>{{item.lastname}}</td>
                 <td>{{item.datetime}}</td>
               </tr>
             </tbody>
@@ -227,7 +229,8 @@
         this.dateTo = value
       },
       cleanItem(item) {
-        item.name = decodeURIComponent(item.name.replaceAll('"', ''))
+        item.firstname = decodeURIComponent(item.firstname.replaceAll('"', ''))
+        item.lastname = decodeURIComponent(item.lastname.replaceAll('"', ''))
         item.membership = decodeURIComponent(item.membership.replaceAll('"', ''))
       },
       async openDownloadMenu() {
@@ -252,9 +255,10 @@
             for (let item of items) {
               let parts = item.split(',')
               let io = {
-                name: parts[0],
-                membership: parts[1],
-                datetime: parts[2],
+                membership: parts[0],
+                firstname: parts[1],
+                lastname: parts[2],
+                datetime: parts[3],
                 new: true
               }
               this.cleanItem(io)

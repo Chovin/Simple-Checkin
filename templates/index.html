@@ -42,13 +42,14 @@
       <div class="card m-6">
         <div class="card-content">
           <div v-scope="{
-            name: '', 
+            firstname: '',
+            lastname: '',
             membership: '',
             submitting: false,
             thanking: false,
             async submit() {
               if (this.thanking || this.submitting) {return}
-              if (!this.name.trim() ||!this.membership.trim()) {
+              if (!this.firstname.trim() || !this.lastname.trim() || !this.membership.trim()) {
                 alert('Please enter your full name and membership number')
                 return
               }
@@ -60,7 +61,8 @@
                     'Content-Type': 'application/json',
                   },
                   body: JSON.stringify({
-                    name: this.name,
+                    firstname: this.firstname,
+                    lastname: this.lastname,
                     membership: this.membership
                   })
                 })
@@ -69,7 +71,8 @@
                 return
               }
               this.submitting = false
-              this.name = ''
+              this.firstname = ''
+              this.lastname = ''
               this.membership = ''
               this.thanking = true
               setTimeout(() => {
@@ -88,8 +91,12 @@
                   <label for="Membership Number">Membership Number</label>
                 </div>
                 <div class="input-field">
-                  <input v-model="name" type="text" id="name" autocomplete="off" :disabled="thanking" required/>
-                  <label for="name">Full Name</label>
+                  <input v-model="firstname" type="text" id="firstname" autocomplete="off" :disabled="thanking" required/>
+                  <label for="firstname">First Name</label>
+                </div>
+                <div class="input-field">
+                  <input v-model="lastname" type="text" id="lastname" autocomplete="off" :disabled="thanking" required/>
+                  <label for="lastname">Last Name</label>
                 </div>
               </div>
             </div>

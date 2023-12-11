@@ -64,9 +64,9 @@ function loadTodayCheckins() {
   fs.readFile(fn, 'utf8', (err, data) => {
     if (err) return;
     checkins[today] = data.split('\n').map((ln) => {
-      let [name, membership, datetime] = ln.replaceAll('"','').split(',')
+      let [membership, firstname, lastname, datetime] = ln.replaceAll('"','').split(',')
       if (!datetime) {return}
-      return {name, membership, datetime}
+      return {firstname, lastname, membership, datetime}
     }).filter((i)=>i)
   })
 
@@ -119,7 +119,7 @@ app.get('/export', asyncHandler(async (req,res,next) => {
   let fromDate = new Date(from)
   let toDate = new Date(to)
   // figure out more performant sort and/or binary search later
-  let s = "Membership Number,Name,Datetime\n"
+  let s = "Membership Number,First Name,Last Name,Datetime\n"
   for (let fn of [...files].sort()) {
     let date = fn.substring(0, fn.lastIndexOf("-"));
     let d = new Date(date)
@@ -152,7 +152,7 @@ app.get('/checkins/stream', function(req, res) {
     while (queue.length > 0) {
       let item = queue.shift()
       
-      res.write(`"${item.name}","${item.membership}",${item.datetime}\n`)
+      res.write(`"${item.membership}","${item.firstname}","${item.lastname}",${item.datetime}\n`)
     }
     t += 1
     if (t > max_stream_time) {
@@ -167,7 +167,8 @@ app.post('/', async function(req, res) {
   const datetime = (new Date()).toLocaleString('en-US', {timeZone: 'Pacific/Guam'}).replace(',','')
   // console.log(date.toISOString({timezone: 'Pacific/Guam'}))
 
-  const name = encodeURIComponent(req.body.name).replaceAll('%20',' ').trim()
+  const firstname = encodeURIComponent(req.body.firstname).replaceAll('%20',' ').trim()
+  const lastname = encodeURIComponent(req.body.lastname).replaceAll('%20',' ').trim()
   const membership = encodeURIComponent(req.body.membership).replaceAll('%20',' ').trim()
   
   const today_str = getToday()
@@ -175,7 +176,8 @@ app.post('/', async function(req, res) {
   rollDate(today_str)
 
   let item = {
-    name,
+    firstname,
+    lastname,
     membership,
     datetime
   }
@@ -194,7 +196,7 @@ app.post('/', async function(req, res) {
       error = err
     }
   })
-  let s = `"${membership}","${name}",${datetime}\n`
+  let s = `"${membership}","${firstname}","${lastname}",${datetime}\n`
   
   await fs.appendFile(path.join(folder, outputFile()), s, (err) => {
     if (err) {

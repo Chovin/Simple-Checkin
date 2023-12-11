@@ -75,7 +75,7 @@
               }
               this.submitting = true
               try {
-                await fetch('/', {
+                let res = await fetch('/', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -86,8 +86,13 @@
                     membership: this.membership
                   })
                 })
+                if (!res.ok) {
+                  const text = await res.text()
+                  throw Error(`${res.status} | ${text}`)
+                }
               } catch (err) {
-                alert('An error has occurred, please try again.')
+                alert(`An error has occurred, please try again.\n${err}`)
+                this.submitting = false
                 return
               }
               this.submitting = false

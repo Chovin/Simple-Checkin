@@ -163,6 +163,11 @@ app.get('/checkins/stream', function(req, res) {
   }, 1000)
 })
 
+function isValidMembership(membership) {
+  const regex = /^\d{5}-\d{5}-\d{2}$/g
+  return regex.test(membership)
+}
+
 app.post('/', async function(req, res) {
   const datetime = (new Date()).toLocaleString('en-US', {timeZone: 'Pacific/Guam'}).replace(',','')
   // console.log(date.toISOString({timezone: 'Pacific/Guam'}))
@@ -170,6 +175,11 @@ app.post('/', async function(req, res) {
   const firstname = encodeURIComponent(req.body.firstname).replaceAll('%20',' ').trim()
   const lastname = encodeURIComponent(req.body.lastname).replaceAll('%20',' ').trim()
   const membership = encodeURIComponent(req.body.membership).replaceAll('%20',' ').trim()
+  if (!isValidMembership(membership)) {
+    res.status(400)
+    res.send('Invalid membership number')
+    return res.end()
+  }
   
   const today_str = getToday()
 
